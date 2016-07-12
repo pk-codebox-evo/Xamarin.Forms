@@ -407,6 +407,7 @@ namespace Xamarin.Forms
 				binding.Unapply();
 				binding.Apply(BindingContext, this, context.Property);
 			}
+			(this as INativeViewBindableController)?.ApplyNativeBindings();
 		}
 
 		static void BindingContextPropertyBindingChanging(BindableObject bindable, BindingBase oldBindingBase, BindingBase newBindingBase)

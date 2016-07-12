@@ -415,6 +415,8 @@
     <Compile Include="IApplicationController.cs" />
     <Compile Include="IAppIndexingProvider.cs" />
     <Compile Include="ListStringTypeConverter.cs" />
+    <Compile Include="BindableProxy.cs" />
+    <Compile Include="INativeViewBindableController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup>

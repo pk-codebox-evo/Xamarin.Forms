@@ -83,6 +83,7 @@
     <Compile Include="Renderers\ExportRendererAttribute.cs" />
     <Compile Include="Resources\StringResources.Designer.cs" />
     <Compile Include="ViewInitializedEventArgs.cs" />
+    <Compile Include="Extensions\NativeBindingExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Deserializer.cs" />
