@@ -9,6 +9,7 @@ namespace Xamarin.Forms
 	{
 		readonly object targetObject;
 		readonly string targetProperty;
+		readonly string targetEvent;
 		readonly PropertyInfo propInfo;
 
 		Action<object, object> callbackSetValue;
@@ -20,7 +21,10 @@ namespace Xamarin.Forms
 		public Type TargetPropertyType;
 
 		public string TargetPropertyName => targetProperty;
-		public BindableProxy(object target, PropertyInfo targetPropInfo)
+		public string TargetEventName => targetEvent;
+
+
+		public BindableProxy(object target, PropertyInfo targetPropInfo, string eventName = null)
 		{
 			if (target == null)
 				throw new ArgumentNullException(nameof(target));
@@ -28,6 +32,7 @@ namespace Xamarin.Forms
 				throw new ArgumentException("targetProperty should not be null or empty", nameof(targetPropInfo));
 			targetProperty = targetPropInfo.Name;
 			targetObject = target;
+			targetEvent = eventName;
 
 			propInfo = targetPropInfo;
 

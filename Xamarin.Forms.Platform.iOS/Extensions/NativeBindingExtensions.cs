@@ -17,41 +17,40 @@ namespace Xamarin.Forms.Platform.iOS
 	{
 		internal static Dictionary<UIView, Dictionary<BindableProxy, Binding>> NativeBindingPool = new Dictionary<UIView, Dictionary<BindableProxy, Binding>>();
 
-		//this works better but maybe is slower
 		public static void SetBinding(this UIView self, Expression<Func<object>> memberLamda, Binding binding)
+		{
+			SetBinding(self, memberLamda, binding, null);
+		}
+
+		//this works better but maybe is slower
+		public static void SetBinding(this UIView self, Expression<Func<object>> memberLamda, Binding binding, string eventName)
 		{
 			var memberSelectorExpression = memberLamda.Body as MemberExpression;
 			if (memberSelectorExpression != null)
 			{
 				var property = memberSelectorExpression.Member as PropertyInfo;
-				var proxy = new BindableProxy(self, property);
-
-				FindConverter(binding, proxy);
-
-				if (NativeBindingPool.ContainsKey(self))
-				{
-					NativeBindingPool[self].Add(proxy, binding);
-				}
-				else
-				{
-					NativeBindingPool.Add(self, new Dictionary<BindableProxy, Binding> { { proxy, binding } });
-				}
+				var proxy = new BindableProxy(self, property, eventName);
+				SetBinding(self, binding, proxy);
 			}
 		}
 
 		public static void SetBinding(this UIView self, string propertyName, Binding binding, Action<object, object> callback = null, Func<object> getter = null)
 		{
 			var proxy = new BindableProxy(self, propertyName, callback, getter);
+			SetBinding(self, binding, proxy);
+		}
 
-			FindConverter(binding, proxy);
+		static void SetBinding(UIView view, Binding binding, BindableProxy bindableProxy)
+		{
+			FindConverter(binding, bindableProxy);
 
-			if (NativeBindingPool.ContainsKey(self))
+			if (NativeBindingPool.ContainsKey(view))
 			{
-				NativeBindingPool[self].Add(proxy, binding);
+				NativeBindingPool[view].Add(bindableProxy, binding);
 			}
 			else
 			{
-				NativeBindingPool.Add(self, new Dictionary<BindableProxy, Binding> { { proxy, binding } });
+				NativeBindingPool.Add(view, new Dictionary<BindableProxy, Binding> { { bindableProxy, binding } });
 			}
 		}
 
@@ -60,8 +59,10 @@ namespace Xamarin.Forms.Platform.iOS
 			if (binding.Converter != null)
 				return;
 
-			var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-			var converter = assembly.CreateInstance($"{assembly.GetName().Name}.{proxy.TargetPropertyType.Name}Converter") as IValueConverter;
+			//this needs to be done upfront and cached.
+			var assembly = Assembly.GetExecutingAssembly();
+			var converterClassName = $"{assembly.GetName().Name}.{proxy.TargetPropertyType.Name}Converter";
+			var converter = assembly.CreateInstance(converterClassName) as IValueConverter;
 			if (converter != null)
 				binding.Converter = converter;
 		}

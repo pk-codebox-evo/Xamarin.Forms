@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 #if __UNIFIED__
 using CoreGraphics;
 using Foundation;
 using UIKit;
+using Xamarin.Forms.Internals;
 
 #else
 using MonoTouch.UIKit;
@@ -19,7 +23,6 @@ using CGSize = System.Drawing.SizeF;
 
 namespace Xamarin.Forms.Platform.iOS
 {
-
 	class NativeViewPropertyListener : NSObject
 	{
 		readonly INativeViewBindableController nativeBindableController;
@@ -46,36 +49,34 @@ namespace Xamarin.Forms.Platform.iOS
 			NativeView = nativeView;
 		}
 
+		public GetDesiredSizeDelegate GetDesiredSizeDelegate { get; }
+
+		public LayoutSubviewsDelegate LayoutSubViews { get; set; }
+
+		public UIView NativeView { get; }
+
+		public SizeThatFitsDelegate SizeThatFitsDelegate { get; set; }
+
 		void INativeViewBindableController.ApplyNativeBindings()
 		{
-
 			if (NativeBindingExtensions.NativeBindingPool.ContainsKey(NativeView))
-			{
-				BindableProxies = NativeBindingExtensions.NativeBindingPool[NativeView];
+				bindableProxies = NativeBindingExtensions.NativeBindingPool[NativeView];
 
-			}
-			else
-				BindableProxies = new Dictionary<BindableProxy, Binding>();
-
-
-			foreach (var item in BindableProxies)
+			foreach (var item in bindableProxies)
 			{
 				item.Key.SetBinding(item.Key.Property, item.Value);
-				item.Key.BindingContext = this.BindingContext;
+				item.Key.BindingContext = BindingContext;
 
 				if (item.Value.Mode == BindingMode.TwoWay)
 				{
-					if (listener == null)
-						listener = new NativeViewPropertyListener(this);
-					NativeView.AddObserver(listener, new NSString(item.Key.TargetPropertyName), 0, IntPtr.Zero);
+					SubscribeTwoWay(item);
 				}
-
 			}
 		}
 
 		void INativeViewBindableController.OnNativePropertyChange(string property, object newValue)
 		{
-			foreach (var item in BindableProxies)
+			foreach (var item in bindableProxies)
 			{
 				if (item.Key.TargetPropertyName == property.ToString())
 				{
@@ -84,30 +85,24 @@ namespace Xamarin.Forms.Platform.iOS
 			}
 		}
 
-		public GetDesiredSizeDelegate GetDesiredSizeDelegate { get; }
-
-		public LayoutSubviewsDelegate LayoutSubViews { get; set; }
-
-		public UIView NativeView { get; }
-
-
-		internal Dictionary<BindableProxy, Binding> BindableProxies
+		void SubscribeTwoWay(KeyValuePair<BindableProxy, Binding> item)
 		{
-			get;
-			set;
+			if (listener == null)
+				listener = new NativeViewPropertyListener(this);
+
+			NativeView.AddObserver(listener, new NSString(item.Key.TargetPropertyName), 0, IntPtr.Zero);
+
+			if (!string.IsNullOrEmpty(item.Key.TargetEventName))
+			{
+				var propertyListener = new NativeViewEventListener(NativeView, item.Key.TargetEventName, item.Key.TargetPropertyName);
+				propertyListener.NativeViewEventFired += (object sender, NativeViewEventFiredEventArgs e) =>
+				{
+					(this as INativeViewBindableController).OnNativePropertyChange(e.PropertyName, null);
+				};
+			}
 		}
 
-		public SizeThatFitsDelegate SizeThatFitsDelegate { get; set; }
-
-		//protected override void OnBindingContextChanged()
-		//{
-		//	base.OnBindingContextChanged();
-		//	if (BindableProxies == null)
-		//		return;
-		//	foreach (var item in BindableProxies)
-		//		item.Key.BindingContext = BindingContext;
-		//}
-
+		Dictionary<BindableProxy, Binding> bindableProxies = new Dictionary<BindableProxy, Binding>();
 
 	}
 }

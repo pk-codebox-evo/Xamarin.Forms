@@ -417,6 +417,8 @@
     <Compile Include="ListStringTypeConverter.cs" />
     <Compile Include="BindableProxy.cs" />
     <Compile Include="INativeViewBindableController.cs" />
+    <Compile Include="Internals\NativeViewEventListener.cs" />
+    <Compile Include="Internals\NativeViewEventFiredEventArgs.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup>

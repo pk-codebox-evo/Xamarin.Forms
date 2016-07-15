@@ -49,7 +49,7 @@ namespace Xamarin.Forms.Controls
 
 			BindingContext = ViewModel = vm; ;
 
-			Content = Layout;
+			Content = new ScrollView { Content = Layout };
 		}
 	}
 

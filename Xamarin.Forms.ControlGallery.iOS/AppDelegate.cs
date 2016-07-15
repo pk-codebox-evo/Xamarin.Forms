@@ -227,7 +227,8 @@ namespace Xamarin.Forms.ControlGallery.iOS
 			//	() => uilabel.TextColor
 			//);
 
-			uilabel.SetBinding(() => uilabel.TextColor, new Binding("NativeLabelColor", BindingMode.TwoWay));
+			uilabel.SetBinding(() => uilabel.TextColor, new Binding("NativeLabelColor"));
+			sl?.Children.Add(uilabel);
 
 			var uibuttonColor = new UIButton(UIButtonType.RoundedRect);
 			uibuttonColor.SetTitle("Toggle Text Color Binding", UIControlState.Normal);
@@ -236,20 +237,22 @@ namespace Xamarin.Forms.ControlGallery.iOS
 			{
 				uilabel.TextColor = UIColor.Blue;
 			};
-#if !_CLASSIC_
-			var colorPicker = new ColorPickerView(new CGRect(0, 0, 300, 100));
 
+			sl?.Children.Add(uibuttonColor.ToView());
+#if !_CLASSIC_
+			var colorPicker = new ColorPickerView(new CGRect(0, 0, 300, 300));
+
+			colorPicker.SetBinding(() => colorPicker.SelectedColor, new Binding("NativeLabelColor", BindingMode.TwoWay), "ColorPicked");
 			colorPicker.ColorPicked += (sender, e) =>
 			{
 				var color = e.SelectedColor;
 
 				// use selected color
 			};
-			
+
 			sl?.Children.Add(colorPicker);
 #endif
-			sl?.Children.Add(uilabel);
-			sl?.Children.Add(uibuttonColor.ToView());
+
 			page.NativeControlsAdded = true;
 		}
 
